@@ -6,3 +6,4 @@ dependencies:
   - requests
   - selenium=4.10
   - webdriver-manager
+  - pytest
