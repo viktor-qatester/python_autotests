@@ -9,3 +9,6 @@ __pycache__/
 # Virtual environment (если используешь)
 venv/
 .venv/
+allure-results/
+allure-report/
+__pycache__/

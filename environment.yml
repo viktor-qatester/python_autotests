@@ -6,4 +6,7 @@ dependencies:
   - requests
   - selenium=4.10
   - webdriver-manager
-  - pytest
+  - pytest                 # Устанавливаем pytest ОДИН раз через Conda (рекомендуется)
+  - pip                    # Устанавливаем сам инструмент pip в окружение
+  - pip:                   # Секция для установки пакетов, которых нет в Conda
+    - allure-pytest 
