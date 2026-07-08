@@ -1,9 +1,7 @@
-.PHONY: test clean
+# Команда для сбора и вывода структуры тест-кейсов без их реального запуска
+show_cases:
+	pytest --collect-only
 
-# Команда по умолчанию для запуска всех тестов из папки tests
-test:
+# Команда для запуска тестов в консоли
+run_tests:
 	pytest
-
-# Команда для очистки проекта от временных файлов кэша Python и pytest
-clean:
-	Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .pytest_cache, **/___pycache___

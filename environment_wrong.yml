@@ -1,0 +1,15 @@
+name: qa_env_wrong
+channels:
+
+conda-forge
+
+defaults
+dependencies:
+
+python=3.11
+
+pytest=8.0.0
+
+selenium=3.141.0     # Умышленно устаревшая версия Selenium
+
+python-chromedriver=100.0.0  # Неподходящая/устаревшая версия драйвера
