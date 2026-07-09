@@ -1,0 +1,12 @@
+name: python_autotests
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - requests
+  - selenium=4.10
+  - webdriver-manager
+  - pytest                 # Устанавливаем pytest ОДИН раз через Conda (рекомендуется)
+  - pip                    # Устанавливаем сам инструмент pip в окружение
+  - pip:                   # Секция для установки пакетов, которых нет в Conda
+    - allure-pytest 
