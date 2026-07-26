@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 def test_github_issues_search():
@@ -108,4 +109,32 @@ def test_github_advanced_search():
 
     # 6. Пауза 5 секунд для визуальной проверки
     time.sleep(5)
+    driver.quit()
+
+def test_github_commit_activity_hover():
+    """Кейс №5: Проверка наведения мыши на график активности коммитов"""
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver.maximize_window()
+    driver.get('https://github.com/microsoft/vscode/graphs/commit-activity')
+
+    wait = WebDriverWait(driver, 10)
+
+    # 1. Находим один из столбцов графика Highcharts
+    chart_bar = wait.until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".highcharts-point"))
+    )
+
+    # 2. Выполняем наведение мыши на столбец через ActionChains
+    actions = ActionChains(driver)
+    actions.move_to_element(chart_bar).perform()
+
+    # 3. Ждем появления всплывающей подсказки (указываем точный SVG-тег g)
+    tooltip = wait.until(
+        EC.visibility_of_element_located((By.CSS_SELECTOR, "g.highcharts-tooltip"))
+    )
+
+    # 4. Проверяем, что подсказка отобразилась
+    assert tooltip.is_displayed(), "Tooltip не отображается при наведении!"
+
+    time.sleep(3)
     driver.quit()
