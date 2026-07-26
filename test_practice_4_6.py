@@ -67,3 +67,45 @@ def test_github_author_filter():
     # 4. Пауза 5 секунд для визуальной проверки
     time.sleep(5)
     driver.quit()
+
+def test_github_advanced_search():
+    """Кейс №3: Расширенный поиск GitHub с выпадающими списками"""
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver.maximize_window()
+    driver.get('https://github.com/search/advanced')
+
+    wait = WebDriverWait(driver, 10)
+
+    # 1. Кликаем на поле языка, чтобы открыть дропдаун
+    language_field = wait.until(
+        EC.element_to_be_clickable((By.ID, "search_language"))
+    )
+    language_field.click()
+    
+    # 2. Выбираем Python из дропдауна (скроллим если нужно)
+    python_option = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//option[@value='Python']"))
+    )
+    python_option.click()
+
+    # 3. Вводим количество звёзд >20000
+    stars_input = wait.until(
+        EC.presence_of_element_located((By.ID, "search_stars"))
+    )
+    stars_input.send_keys(">20000")
+
+    # 4. Вводим имя файла environment.yml
+    filename_input = wait.until(
+        EC.presence_of_element_located((By.ID, "search_filename"))
+    )
+    filename_input.send_keys("environment.yml")
+
+    # 5. Нажимаем кнопку поиска
+    search_button = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Search')]"))
+    )
+    search_button.click()
+
+    # 6. Пауза 5 секунд для визуальной проверки
+    time.sleep(5)
+    driver.quit()
