@@ -138,3 +138,67 @@ def test_github_commit_activity_hover():
 
     time.sleep(3)
     driver.quit()
+
+def test_skillbox_course_filters():
+    """Кейс №4: Фильтрация курсов на Skillbox (Профессия, 6-12 месяцев, Docker)"""
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver.maximize_window()
+    driver.get('https://skillbox.ru/code/')
+
+    wait = WebDriverWait(driver, 10)
+
+    # 1. Открываем окно фильтров
+    filter_btn = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Фильтры')]"))
+    )
+    filter_btn.click()
+
+    # 2. Выбираем вкладку "Профессия" через JS (обход всплывающей подсказки)
+    profession_tab = wait.until(
+        EC.element_to_be_clickable((
+            By.XPATH, 
+            "//button[contains(@class, 'programs-filter-group__tab') and contains(., 'Профессия')]"
+        ))
+    )
+    driver.execute_script("arguments[0].click();", profession_tab)
+    time.sleep(1)
+
+    # 3. Выбираем диапазон длительности "От 6 до 12 мес."
+    duration_tab = wait.until(
+        EC.element_to_be_clickable((
+            By.XPATH, 
+            "//button[contains(@class, 'programs-filter-group__tab') and contains(., 'От 6 до 12 мес.')]"
+        ))
+    )
+    driver.execute_script("arguments[0].click();", duration_tab)
+    time.sleep(1)
+
+    # 4. Выбираем тематику "Docker"
+    topic_tab = wait.until(
+        EC.element_to_be_clickable((
+            By.XPATH, 
+            "//button[contains(@class, 'programs-filter-group__tab') and contains(., 'Docker')]"
+        ))
+    )
+    driver.execute_script("arguments[0].click();", topic_tab)
+    time.sleep(1)
+
+    # 5. Нажимаем кнопку "Применить"
+    apply_button = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Применить')]"))
+    )
+    driver.execute_script("arguments[0].click();", apply_button)
+
+    # 6. Проверка результатов: ждем обновления карточек курсов
+    time.sleep(3)
+    cards = wait.until(
+        EC.presence_of_all_elements_located((
+            By.XPATH, 
+            "//article[contains(@class, 'product-card')] | //div[contains(@class, 'product-card')]"
+        ))
+    )
+    
+    assert len(cards) > 0, "После применения фильтров карточки курсов не найдены!"
+
+    time.sleep(3)
+    driver.quit()
