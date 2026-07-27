@@ -122,109 +122,101 @@ def test_github_advanced_search():
 
 
 def test_skillbox_course_filters():
-    """Кейс №4: Фильтрация курсов по ТЗ (Профессия + 6-12 мес + Docker + Применить)"""
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    """Кейс №4: Фильтрация курсов (Профессия + 6-12 мес + Docker)"""
     
-    # 1. Фиксируем разрешение экрана 1920x1080 (Desktop)
-    driver.set_window_size(1920, 1080)
-    driver.get('https://skillbox.ru/code/')
-
+    options = webdriver.ChromeOptions()
+    options.add_argument("--start-maximized")
+    options.add_argument("--window-size=1920,1080")
+    
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     wait = WebDriverWait(driver, 15)
 
-    # 2. Закрываем плашку куки, если она мешает
-    try:
-        cookie_btn = wait.until(
-            EC.presence_of_element_located((
-                By.XPATH, 
-                "//button[contains(., 'Согласен') or contains(., 'Принять') or contains(@class, 'cookie')]"
-            ))
-        )
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", cookie_btn)
-        cookie_btn.click()
-    except Exception:
-        pass  # Если плашки нет, идем дальше
+    def safe_click(by, value):
+        """Вспомогательный метод: ждет точный элемент и кликает напрямую через JS."""
+        element = wait.until(EC.presence_of_element_located((by, value)))
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+        time.sleep(0.2)
+        driver.execute_script("arguments[0].click();", element)
 
-    # 3. Открываем боковую панель "Фильтры"
-    filter_btn = wait.until(
-        EC.presence_of_element_located((
+    try:
+        driver.get('https://skillbox.ru/code/')
+
+        # 1. Быстрое закрытие куки (без задержки)
+        driver.implicitly_wait(1)
+        cookie_btns = driver.find_elements(
+            By.XPATH, 
+            "//button[contains(., 'Согласен') or contains(., 'Принять') or contains(@class, 'cookie')]"
+        )
+        if cookie_btns and cookie_btns[0].is_displayed():
+            driver.execute_script("arguments[0].click();", cookie_btns[0])
+        driver.implicitly_wait(0)
+
+        # 2. ПРОВЕРКА: Если есть кнопка "Фильтры", открываем модальную панель
+        filter_buttons = driver.find_elements(
             By.XPATH, 
             "//button[contains(@class, 'programs-filter-mobile__button') or contains(., 'Фильтры')]"
-        ))
-    )
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", filter_btn)
-    wait.until(EC.element_to_be_clickable(filter_btn)).click()
+        )
+        
+        if filter_buttons and filter_buttons[0].is_displayed():
+            driver.execute_script("arguments[0].click();", filter_buttons[0])
+            time.sleep(0.8)  # Время на анимацию открытия шторки
 
-    # 4. Выбираем тип "Профессия"
-    profession_filter = wait.until(
-        EC.presence_of_element_located((
+        # 3. Выбираем "Профессия" (по точной плашке/кнопке)
+        safe_click(
             By.XPATH, 
-            "//button[contains(@class, 'programs-filter-group__tab') and contains(., 'Профессия')]"
-        ))
-    )
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", profession_filter)
-    wait.until(EC.element_to_be_clickable(profession_filter)).click()
+            "//*[(self::button or self::label or self::span or self::div) and contains(text(), 'Профессия')]"
+        )
+        time.sleep(0.3)
 
-    # 5. Выбираем длительность "От 6 до 12 мес."
-    duration_filter = wait.until(
-        EC.presence_of_element_located((
-            By.XPATH, 
-            "//button[contains(@class, 'programs-filter-group__tab') and contains(., 'От 6 до 12 мес.')]"
-        ))
-    )
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", duration_filter)
-    wait.until(EC.element_to_be_clickable(duration_filter)).click()
+        # 4. Выбираем длительность "От 6 до 12 мес." (используем text(), а не .)
+        safe_click(
+            By.XPATH,
+            "//*[(self::button or self::label or self::span or self::div or self::li) and (contains(text(), '6') and contains(text(), '12'))]"
+        )
+        time.sleep(0.3)
 
-    # 6. Выбираем тематику "Docker"
-    topic_filter = wait.until(
-        EC.presence_of_element_located((
-            By.XPATH, 
-            "//button[contains(@class, 'programs-filter-group__tab') and contains(., 'Docker')]"
-        ))
-    )
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", topic_filter)
-    wait.until(EC.element_to_be_clickable(topic_filter)).click()
+        # 5. Выбираем "Docker" (клик строго по плашке с текстом Docker)
+        safe_click(
+            By.XPATH,
+            "//*[(self::button or self::label or self::span or self::div or self::li) and contains(text(), 'Docker')]"
+        )
+        time.sleep(0.5)
 
-    # 7. Нажимаем главную кнопку "Применить" по её родному классу ui-button
-    apply_btn = wait.until(
-        EC.presence_of_element_located((
-            By.XPATH, 
-            "//button[contains(@class, 'ui-button') and contains(., 'Применить')]"
-        ))
-    )
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", apply_btn)
-    wait.until(EC.element_to_be_clickable(apply_btn)).click()
+        # 6. Если открыта шторка — нажимаем синюю кнопку "Применить"
+        apply_btns = driver.find_elements(By.XPATH, "//button[contains(., 'Применить')]")
+        if apply_btns and apply_btns[0].is_displayed():
+            driver.execute_script("arguments[0].click();", apply_btns[0])
+            time.sleep(2.0)  # Время на перерисовку каталога
 
-    # Даем фронтенду 2 секунды на перерисовку каталога и закрытие шторки
-    time.sleep(2)
-
-    # 8. ASSERTS: Ждём появление первой карточки в каталоге
-    wait.until(
-        EC.presence_of_element_located((
+        # 7. ASSERTS: Проверка отображения карточек курсов
+        wait.until(
+            EC.presence_of_element_located((
+                By.XPATH, 
+                "//article | //a[contains(@class, 'card')] | //div[contains(@class, 'card')]"
+            ))
+        )
+        
+        cards = driver.find_elements(
             By.XPATH, 
             "//article | //a[contains(@class, 'card')] | //div[contains(@class, 'card')]"
-        ))
-    )
-    
-    cards = driver.find_elements(
-        By.XPATH, 
-        "//article | //a[contains(@class, 'card')] | //div[contains(@class, 'card')]"
-    )
+        )
 
-    # Проверка 1: Карточки найдены
-    assert len(cards) > 0, "После нажатия 'Применить' карточки курсов не отображаются!"
+        assert len(cards) > 0, "После применения фильтров карточки не найдены!"
 
-    # Проверка 2: Безопасная сборка текста карточек для валидации параметров
-    cards_text = ""
-    for card in cards:
-        try:
-            cards_text += " " + card.text
-        except StaleElementReferenceException:
-            pass
+        cards_text = ""
+        for card in cards:
+            try:
+                if card.is_displayed() and card.text:
+                    cards_text += " " + card.text
+            except StaleElementReferenceException:
+                pass
 
-    assert "Профессия" in cards_text or "Docker" in cards_text or len(cards) > 0, \
-        "Результаты фильтрации не соответствуют запрашиваемым параметрам!"
+        assert "Docker" in cards_text or "Профессия" in cards_text, \
+            "Результаты фильтрации не содержат выбранных тегов!"
 
-    driver.quit()
+    finally:
+        driver.quit()
+
 
 
 def test_github_commit_activity_hover():
