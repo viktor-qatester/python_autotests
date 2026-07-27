@@ -122,44 +122,55 @@ def test_github_advanced_search():
 
 
 def test_skillbox_course_filters():
-    """Кейс №4: Фильтрация курсов на Skillbox"""
+    """Кейс №4: Фильтрация курсов на Skillbox (Десктопная версия 1920x1080)"""
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    driver.maximize_window()
+    
+    # 1. Задаем фиксированное разрешение экрана десктопа
+    driver.set_window_size(1920, 1080)
     driver.get('https://skillbox.ru/code/')
 
     wait = WebDriverWait(driver, 10)
 
-    # Закрываем куки-банер, если он появляется
+    # 2. Закрываем плашку куки, если она появилась на экране
     try:
-        cookie_btn = driver.find_element(By.XPATH, "//button[contains(., 'Согласен') or contains(., 'Принять')]")
+        cookie_btn = wait.until(
+            EC.element_to_be_clickable((
+                By.XPATH, 
+                "//button[contains(., 'Согласен') or contains(., 'Принять') or contains(@class, 'cookie')]"
+            ))
+        )
         cookie_btn.click()
     except Exception:
-        pass
+        pass  # Если плашки нет, переходим к следующему шагу
 
-    # 1. Открываем окно фильтров
+    # 3. Открываем окно / панели фильтров
     filter_btn = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Фильтры')]"))
+        EC.element_to_be_clickable((
+            By.XPATH, 
+            "//button[contains(@class, 'filter') or contains(., 'Фильтры')]"
+        ))
     )
-    driver.execute_script("arguments[0].click();", filter_btn)
-    time.sleep(1)
+    filter_btn.click()
 
-    # 2. Выбираем "Профессия"
-    try:
-        profession_tab = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Профессия')] | //label[contains(., 'Профессия')]"))
-        )
-        driver.execute_script("arguments[0].click();", profession_tab)
-    except Exception:
-        pass
+    # 4. Выбираем фильтр "Профессия"
+    profession_option = wait.until(
+        EC.element_to_be_clickable((
+            By.XPATH, 
+            "//label[contains(., 'Профессия')] | //button[contains(., 'Профессия')]"
+        ))
+    )
+    profession_option.click()
 
-    # 3. Нажимаем "Применить"
+    # 5. Применяем фильтрацию
     apply_button = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Применить') or contains(., 'Показать')]"))
+        EC.element_to_be_clickable((
+            By.XPATH, 
+            "//button[contains(., 'Применить') or contains(., 'Показать')]"
+        ))
     )
-    driver.execute_script("arguments[0].click();", apply_button)
+    apply_button.click()
 
-    # 4. ASSERT: Ждем загрузки результатов и проверяем наличие карточек
-    time.sleep(3)
+    # 6. ASSERT: Проверяем, что результаты отфильтровались и карточки отображаются
     cards = wait.until(
         EC.presence_of_all_elements_located((
             By.XPATH, 
@@ -167,7 +178,7 @@ def test_skillbox_course_filters():
         ))
     )
     
-    assert len(cards) > 0, "После применения фильтров карточки курсов не найдены!"
+    assert len(cards) > 0, "После применения фильтра 'Профессия' карточки курсов не найдены!"
 
     driver.quit()
 
