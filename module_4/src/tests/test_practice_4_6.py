@@ -166,14 +166,19 @@ def test_skillbox_course_filters():
     wait = WebDriverWait(driver, 15)
 
     def safe_click(by, value):
-        """Вспомогательный метод: ждет элемент и кликает через JS."""
-        element = wait.until(EC.presence_of_element_located((by, value)))
+        """Вспомогательный метод: ждет кликабельности элемента и кликает."""
+        # Используем element_to_be_clickable вместо presence_of_element_located
+        element = wait.until(EC.element_to_be_clickable((by, value)))
         driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});",
             element
         )
         time.sleep(0.3)
-        driver.execute_script("arguments[0].click();", element)
+        try:
+            element.click()
+        except Exception:
+            # Резервный клик через JS, если элемент перекрыт баннером или анимацией
+            driver.execute_script("arguments[0].click();", element)
 
     try:
         driver.get("https://skillbox.ru/code/")
