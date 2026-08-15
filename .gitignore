@@ -11,5 +11,7 @@ venv/
 .venv/
 allure-results/
 allure-report/
+logs/
+*.log
 __pycache__/
 .vscode/

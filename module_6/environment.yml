@@ -1,0 +1,13 @@
+name: python_autotests
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - requests
+  - selenium=4.10
+  - webdriver-manager
+  - pytest
+  - flake8
+  - pip
+  - pip:
+    - allure-pytest
