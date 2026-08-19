@@ -1,0 +1,12 @@
+name: python_autotests
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - requests
+  - pytest
+  - flake8
+  - pip
+  - pip:
+    - playwright
+    - allure-pytest
